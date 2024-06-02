@@ -1,10 +1,8 @@
-import os
 import streamlit as st
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier, plot_tree
 from sklearn.metrics import confusion_matrix, roc_curve, auc
-import plotly.express as px
 import plotly.figure_factory as ff
 import plotly.graph_objects as go
 import matplotlib.pyplot as plt
@@ -26,7 +24,7 @@ st.title("Dashboard for Random Forest and CART Classification")
 
 # Sidebar for navigation
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Upload Data", "Descriptive Statistics", "Classification Models", "Prediction", "Comparison"])
+page = st.sidebar.radio("Go to", ["Load Data", "Descriptive Statistics", "Classification Models", "Prediction", "Comparison"])
 
 # Initialize session state for data storage
 if 'train_data' not in st.session_state:
@@ -35,24 +33,26 @@ if 'test_data' not in st.session_state:
     st.session_state.test_data = pd.DataFrame()
 
 # Paths to data files
-TRAIN_DATA_FILE = "Data train balance.csv"  # Replace with your actual training data file name
-TEST_DATA_FILE = "Data test balance.csv"    # Replace with your actual testing data file name
+TRAIN_DATA_FILE = "Data train balance.csv"  
+TEST_DATA_FILE = "Data test balance.csv"    
 
-if page == "Upload Data":
-    st.header("Upload Data")
+if page == "Load Data":
+    st.header("Load Data")
     
-    if os.path.exists(TRAIN_DATA_FILE):
+    # Load training data
+    try:
         st.session_state.train_data = pd.read_csv(TRAIN_DATA_FILE)
         st.write("Training Data Preview")
         st.write(st.session_state.train_data.head())
-    else:
+    except FileNotFoundError:
         st.write(f"Training data file {TRAIN_DATA_FILE} not found.")
 
-    if os.path.exists(TEST_DATA_FILE):
+    # Load testing data
+    try:
         st.session_state.test_data = pd.read_csv(TEST_DATA_FILE)
         st.write("Testing Data Preview")
         st.write(st.session_state.test_data.head())
-    else:
+    except FileNotFoundError:
         st.write(f"Testing data file {TEST_DATA_FILE} not found.")
 
 elif page == "Descriptive Statistics":
@@ -214,3 +214,4 @@ elif page == "Comparison":
             fig.add_shape(type='line', x0=0, y0=0, x1=1, y1=1, line=dict(dash='dash', color='yellow'))
             fig.update_layout(xaxis_title='False Positive Rate', yaxis_title='True Positive Rate', title='ROC Curves Comparison')
             st.plotly_chart(fig)
+
