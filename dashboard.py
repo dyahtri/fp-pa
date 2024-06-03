@@ -12,12 +12,13 @@ def load_data(file_path):
     return pd.read_csv(file_path)
 
 @st.cache_resource
-def train_model(model_name, X_train, y_train):
+def get_model(model_name):
     if model_name == "Random Forest":
-        model = RandomForestClassifier()
+        return RandomForestClassifier()
     else:
-        model = DecisionTreeClassifier()
-    
+        return DecisionTreeClassifier()
+
+def train_model(model, X_train, y_train):
     model.fit(X_train, y_train)
     return model
 
@@ -98,7 +99,8 @@ elif page == "Classification Models":
             X_test = st.session_state.test_data[feature_columns]
             y_test = st.session_state.test_data[label_column]
 
-            model = train_model(classifier_name, X_train, y_train)
+            model = get_model(classifier_name)
+            model = train_model(model, X_train, y_train)
             y_pred = model.predict(X_test)
 
             accuracy = model.score(X_test, y_test)
@@ -149,7 +151,8 @@ elif page == "Prediction":
             X_train = st.session_state.train_data[feature_columns]
             y_train = st.session_state.train_data[label_column]
 
-            model = train_model(classifier_name, X_train, y_train)
+            model = get_model(classifier_name)
+            model = train_model(model, X_train, y_train)
 
             st.subheader("Input Values for Prediction")
             input_data = {}
@@ -180,15 +183,15 @@ elif page == "Comparison":
             y_test = st.session_state.test_data[label_column]
 
             classifiers = {
-                "Random Forest": RandomForestClassifier(),
-                "CART": DecisionTreeClassifier()
+                "Random Forest": get_model("Random Forest"),
+                "CART": get_model("CART")
             }
 
             metrics = []
             roc_curves = {}
 
             for name, model in classifiers.items():
-                model = train_model(name, X_train, y_train)
+                model = train_model(model, X_train, y_train)
                 y_pred = model.predict(X_test)
 
                 accuracy = model.score(X_test, y_test)
