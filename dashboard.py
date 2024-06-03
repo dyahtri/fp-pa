@@ -7,6 +7,15 @@ import plotly.figure_factory as ff
 import plotly.graph_objects as go
 import matplotlib.pyplot as plt
 
+@st.cache_data
+def load_data(file_path):
+    return pd.read_csv(file_path)
+
+@st.cache_resource
+def train_model(model, X_train, y_train):
+    model.fit(X_train, y_train)
+    return model
+
 def specificity_score(y_true, y_pred):
     cm = confusion_matrix(y_true, y_pred)
     tn, fp, fn, tp = cm.ravel()
@@ -33,15 +42,15 @@ if 'test_data' not in st.session_state:
     st.session_state.test_data = pd.DataFrame()
 
 # Paths to data files
-TRAIN_DATA_FILE = "Data train balance.csv"  
-TEST_DATA_FILE = "Data test balance.csv"    
+TRAIN_DATA_FILE = "Data train balance.csv"
+TEST_DATA_FILE = "Data test balance.csv"
 
 if page == "Load Data":
     st.header("Load Data")
-    
+
     # Load training data
     try:
-        st.session_state.train_data = pd.read_csv(TRAIN_DATA_FILE)
+        st.session_state.train_data = load_data(TRAIN_DATA_FILE)
         st.write("Training Data Preview")
         st.write(st.session_state.train_data.head())
     except FileNotFoundError:
@@ -49,7 +58,7 @@ if page == "Load Data":
 
     # Load testing data
     try:
-        st.session_state.test_data = pd.read_csv(TEST_DATA_FILE)
+        st.session_state.test_data = load_data(TEST_DATA_FILE)
         st.write("Testing Data Preview")
         st.write(st.session_state.test_data.head())
     except FileNotFoundError:
@@ -70,7 +79,6 @@ elif page == "Descriptive Statistics":
             st.write("Descriptive Statistics of Testing Data")
             st.write(st.session_state.test_data[selected_columns_test].describe())
 
-
 elif page == "Classification Models":
     st.header("Classification Models")
 
@@ -90,7 +98,7 @@ elif page == "Classification Models":
             else:
                 model = DecisionTreeClassifier()
 
-            model.fit(X_train, y_train)
+            model = train_model(model, X_train, y_train)
             y_pred = model.predict(X_test)
 
             accuracy = model.score(X_test, y_test)
@@ -146,7 +154,7 @@ elif page == "Prediction":
             else:
                 model = DecisionTreeClassifier()
 
-            model.fit(X_train, y_train)
+            model = train_model(model, X_train, y_train)
 
             st.subheader("Input Values for Prediction")
             input_data = {}
@@ -185,7 +193,7 @@ elif page == "Comparison":
             roc_curves = {}
 
             for name, model in classifiers.items():
-                model.fit(X_train, y_train)
+                model = train_model(model, X_train, y_train)
                 y_pred = model.predict(X_test)
 
                 accuracy = model.score(X_test, y_test)
@@ -214,4 +222,3 @@ elif page == "Comparison":
             fig.add_shape(type='line', x0=0, y0=0, x1=1, y1=1, line=dict(dash='dash', color='yellow'))
             fig.update_layout(xaxis_title='False Positive Rate', yaxis_title='True Positive Rate', title='ROC Curves Comparison')
             st.plotly_chart(fig)
-
