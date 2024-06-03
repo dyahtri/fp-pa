@@ -1,9 +1,8 @@
 import streamlit as st
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import confusion_matrix, roc_curve, auc
-import plotly.figure_factory as ff
 import plotly.graph_objects as go
 import matplotlib.pyplot as plt
 
@@ -116,8 +115,7 @@ elif page == "Classification Models":
 
             st.subheader("Confusion Matrix")
             cm = confusion_matrix(y_test, y_pred)
-            fig = ff.create_annotated_heatmap(cm, x=["Predicted Negative", "Predicted Positive"], y=["Actual Negative", "Actual Positive"])
-            st.plotly_chart(fig)
+            st.write(cm)
 
             st.subheader("ROC Curve")
             fig = go.Figure(data=go.Scatter(x=fpr, y=tpr, mode='lines', name='ROC Curve'))
@@ -128,7 +126,8 @@ elif page == "Classification Models":
             if classifier_name == "CART":
                 st.subheader("Decision Tree Visualization")
                 fig, ax = plt.subplots(figsize=(12, 8))
-                plot_tree(model, filled=True, ax=ax)
+                model_tree = model.tree_
+                _ = plot_tree(model, filled=True, ax=ax)
                 st.pyplot(fig)
                 
             elif classifier_name == "Random Forest":
