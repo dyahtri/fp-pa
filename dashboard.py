@@ -124,20 +124,7 @@ elif page == "Classification Models":
             fig.update_layout(xaxis_title='False Positive Rate', yaxis_title='True Positive Rate', title='ROC Curve')
             st.plotly_chart(fig)
 
-            if classifier_name == "CART":
-                st.subheader("Decision Tree Visualization")
-                fig, ax = plt.subplots(figsize=(12, 8))
-                model_tree = model.tree_
-                _ = plot_tree(model, filled=True, ax=ax)
-                st.pyplot(fig)
-                
-            elif classifier_name == "Random Forest":
-                st.subheader("Random Forest Trees Visualization")
-                num_trees_to_plot = min(3, len(model.estimators_))
-                for i in range(num_trees_to_plot):
-                    fig, ax = plt.subplots(figsize=(12, 8))
-                    plot_tree(model.estimators_[i], filled=True, ax=ax)
-                    st.pyplot(fig)
+
 
 elif page == "Prediction":
     st.header("Prediction")
