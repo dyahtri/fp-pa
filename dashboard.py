@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.tree import DecisionTreeClassifier
 from sklearn.tree import DecisionTreeClassifier, plot_tree
 from sklearn.metrics import confusion_matrix, roc_curve, auc
 import plotly.graph_objects as go
@@ -127,17 +126,14 @@ elif page == "Classification Models":
             if classifier_name == "CART":
                 st.subheader("Decision Tree Visualization")
                 fig, ax = plt.subplots(figsize=(12, 8))
-                model_tree = model.tree_
                 _ = plot_tree(model, filled=True, ax=ax)
                 st.pyplot(fig)
                 
             elif classifier_name == "Random Forest":
                 st.subheader("Random Forest Trees Visualization")
-                num_trees_to_plot = min(3, len(model.estimators_))
-                for i in range(num_trees_to_plot):
-                    fig, ax = plt.subplots(figsize=(12, 8))
-                    plot_tree(model.estimators_[i], filled=True, ax=ax)
-                    st.pyplot(fig)
+                fig, ax = plt.subplots(figsize=(12, 8))
+                plot_tree(model.estimators_[0], filled=True, ax=ax)  # Menampilkan hanya satu pohon dari Random Forest
+                st.pyplot(fig)
 
 elif page == "Prediction":
     st.header("Prediction")
