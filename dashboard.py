@@ -39,7 +39,7 @@ st.title("Dashboard for Random Forest and CART Classification")
 
 # Sidebar for navigation
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Load Data", "Descriptive Statistics", "Prediction", "Comparison"])
+page = st.sidebar.radio("Go to", [ "Descriptive Statistics", "Prediction", "Comparison"])
 
 # Initialize session state for data storage
 if 'train_data' not in st.session_state:
@@ -51,26 +51,7 @@ if 'test_data' not in st.session_state:
 TRAIN_DATA_FILE = "Data train balance.csv"
 TEST_DATA_FILE = "Data test balance.csv"
 
-if page == "Load Data":
-    st.header("Load Data")
-
-    # Load training data
-    try:
-        st.session_state.train_data = load_data(TRAIN_DATA_FILE)
-        st.write("Training Data Preview")
-        st.write(st.session_state.train_data.head())
-    except FileNotFoundError:
-        st.write(f"Training data file {TRAIN_DATA_FILE} not found.")
-
-    # Load testing data
-    try:
-        st.session_state.test_data = load_data(TEST_DATA_FILE)
-        st.write("Testing Data Preview")
-        st.write(st.session_state.test_data.head())
-    except FileNotFoundError:
-        st.write(f"Testing data file {TEST_DATA_FILE} not found.")
-
-elif page == "Descriptive Statistics":
+if page == "Descriptive Statistics":
     st.header("Descriptive Statistics")
 
     if not st.session_state.train_data.empty:
