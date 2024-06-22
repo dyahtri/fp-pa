@@ -39,7 +39,7 @@ st.title("Dashboard for Random Forest and CART Classification")
 
 # Sidebar for navigation
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", [ "Descriptive Statistics", "Prediction", "Comparison"])
+page = st.sidebar.radio("Go to", ["Load Data", "Descriptive Statistics", "Classification Models", "Prediction", "Comparison"])
 
 # Initialize session state for data storage
 if 'train_data' not in st.session_state:
@@ -51,7 +51,26 @@ if 'test_data' not in st.session_state:
 TRAIN_DATA_FILE = "Data train balance.csv"
 TEST_DATA_FILE = "Data test balance.csv"
 
-if page == "Descriptive Statistics":
+if page == "Load Data":
+    st.header("Load Data")
+
+    # Load training data
+    try:
+        st.session_state.train_data = load_data(TRAIN_DATA_FILE)
+        st.write("Training Data Preview")
+        st.write(st.session_state.train_data.head())
+    except FileNotFoundError:
+        st.write(f"Training data file {TRAIN_DATA_FILE} not found.")
+
+    # Load testing data
+    try:
+        st.session_state.test_data = load_data(TEST_DATA_FILE)
+        st.write("Testing Data Preview")
+        st.write(st.session_state.test_data.head())
+    except FileNotFoundError:
+        st.write(f"Testing data file {TEST_DATA_FILE} not found.")
+
+elif page == "Descriptive Statistics":
     st.header("Descriptive Statistics")
 
     if not st.session_state.train_data.empty:
@@ -65,6 +84,60 @@ if page == "Descriptive Statistics":
         if selected_columns_test:
             st.write("Descriptive Statistics of Testing Data")
             st.write(st.session_state.test_data[selected_columns_test].describe())
+
+elif page == "Classification Models":
+    st.header("Classification Models")
+
+    if not st.session_state.train_data.empty and not st.session_state.test_data.empty:
+        feature_columns = st.multiselect("Select Feature Columns (X)", st.session_state.train_data.columns)
+        label_column = st.selectbox("Select Label Column (Y)", st.session_state.train_data.columns)
+        classifier_name = st.selectbox("Select Classifier", ["Random Forest", "CART"], index=0)
+
+        if feature_columns and label_column:
+            X_train = st.session_state.train_data[feature_columns]
+            y_train = st.session_state.train_data[label_column]
+            X_test = st.session_state.test_data[feature_columns]
+            y_test = st.session_state.test_data[label_column]
+
+            model = get_model(classifier_name)
+            model = train_model(model, X_train, y_train)
+            y_pred = model.predict(X_test)
+
+            accuracy = model.score(X_test, y_test)
+            specificity = specificity_score(y_test, y_pred)
+            sensitivity = sensitivity_score(y_test, y_pred)
+            fpr, tpr, _ = roc_curve(y_test, model.predict_proba(X_test)[:, 1])
+            roc_auc = auc(fpr, tpr)
+
+            st.write("Accuracy: {:.3f}".format(accuracy))
+            st.write("Sensitivity: {:.3f}".format(sensitivity))
+            st.write("Specificity: {:.3f}".format(specificity))
+            st.write("AUC: {:.3f}".format(roc_auc))
+
+            st.subheader("Confusion Matrix")
+            cm = confusion_matrix(y_test, y_pred)
+            st.write(cm)
+
+            st.subheader("ROC Curve")
+            fig = go.Figure(data=go.Scatter(x=fpr, y=tpr, mode='lines', name='ROC Curve'))
+            fig.add_shape(type='line', x0=0, y0=0, x1=1, y1=1, line=dict(dash='dash', color='yellow'))
+            fig.update_layout(xaxis_title='False Positive Rate', yaxis_title='True Positive Rate', title='ROC Curve')
+            st.plotly_chart(fig)
+
+            if classifier_name == "CART":
+                st.subheader("Decision Tree Visualization")
+                fig, ax = plt.subplots(figsize=(12, 8))
+                model_tree = model.tree_
+                _ = plot_tree(model, filled=True, ax=ax)
+                st.pyplot(fig)
+                
+            elif classifier_name == "Random Forest":
+                st.subheader("Random Forest Trees Visualization")
+                num_trees_to_plot = min(3, len(model.estimators_))
+                for i in range(num_trees_to_plot):
+                    fig, ax = plt.subplots(figsize=(12, 8))
+                    plot_tree(model.estimators_[i], filled=True, ax=ax)
+                    st.pyplot(fig)
 
 elif page == "Prediction":
     st.header("Prediction")
