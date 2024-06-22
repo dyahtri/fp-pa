@@ -39,7 +39,7 @@ st.title("Dashboard for Random Forest and CART Classification")
 
 # Sidebar for navigation
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Load Data", "Descriptive Statistics", "Classification Models", "Prediction", "Comparison"])
+page = st.sidebar.radio("Go to", ["Load Data", "Descriptive Statistics", "Prediction", "Comparison"])
 
 # Initialize session state for data storage
 if 'train_data' not in st.session_state:
