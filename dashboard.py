@@ -1,10 +1,11 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier, plot_tree
-from sklearn.metrics import confusion_matrix
-import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix, roc_curve, auc
 import seaborn as sns
+import matplotlib.pyplot as plt
 
 @st.cache_data
 def load_data(file_path):
@@ -151,6 +152,7 @@ elif page == "Classification and Comparison":
                 }
 
                 metrics = []
+                roc_curves = {}
 
                 for name, model in classifiers.items():
                     model = train_model(model, X_train, y_train)
@@ -159,16 +161,32 @@ elif page == "Classification and Comparison":
                     accuracy = model.score(X_test, y_test)
                     specificity = specificity_score(y_test, y_pred)
                     sensitivity = sensitivity_score(y_test, y_pred)
+                    fpr, tpr, _ = roc_curve(y_test, model.predict_proba(X_test)[:, 1])
+                    roc_auc = auc(fpr, tpr)
 
                     metrics.append({
                         "Model": name,
                         "Accuracy": accuracy,
                         "Sensitivity": sensitivity,
-                        "Specificity": specificity
+                        "Specificity": specificity,
+                        "AUC": roc_auc
                     })
+
+                    roc_curves[name] = (fpr, tpr)
 
                 metrics_df = pd.DataFrame(metrics)
                 st.write(metrics_df)
+
+                st.subheader("ROC Curves Comparison")
+                fig = plt.figure()
+                for name, (fpr, tpr) in roc_curves.items():
+                    plt.plot(fpr, tpr, label=f'{name} ROC Curve')
+                plt.plot([0, 1], [0, 1], 'k--')
+                plt.xlabel('False Positive Rate')
+                plt.ylabel('True Positive Rate')
+                plt.title('ROC Curves Comparison')
+                plt.legend()
+                st.pyplot(fig)
 
 elif page == "Prediction":
     st.header("Prediction")
