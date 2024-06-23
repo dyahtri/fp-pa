@@ -8,15 +8,14 @@ import matplotlib.pyplot as plt
 
 @st.cache_data
 def load_data(file_path):
-    # Menggunakan subset data untuk mengurangi penggunaan memori
-    return pd.read_csv(file_path).sample(1000, random_state=42)
+    return pd.read_csv(file_path)
 
 @st.cache_resource
 def get_model(model_name):
     if model_name == "Random Forest":
-        return RandomForestClassifier(n_estimators=10)  # Kurangi jumlah estimator untuk Random Forest
+        return RandomForestClassifier(n_estimators=100, max_depth=None, n_jobs=-1)  # Use all processors to reduce time
     else:
-        return DecisionTreeClassifier(max_depth=5)  # Batasi kedalaman pohon untuk CART
+        return DecisionTreeClassifier(max_depth=None)
 
 def train_model(model, X_train, y_train):
     model.fit(X_train, y_train)
@@ -133,7 +132,7 @@ elif page == "Classification Models":
             elif classifier_name == "Random Forest":
                 st.subheader("Random Forest Tree Visualization")
                 fig, ax = plt.subplots(figsize=(12, 8))
-                plot_tree(model.estimators_[0], filled=True, ax=ax)  # Menampilkan hanya satu pohon dari Random Forest
+                plot_tree(model.estimators_[0], filled=True, ax=ax)  # Show only one tree from Random Forest
                 st.pyplot(fig)
 
 elif page == "Prediction":
