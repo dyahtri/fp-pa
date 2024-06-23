@@ -208,4 +208,8 @@ elif page == "Comparison":
 
             st.subheader("ROC Curves Comparison")
             fig = go.Figure()
-            for name, (fpr, tpr) in roc_curves
+            for name, (fpr, tpr) in roc_curves.items():
+                fig.add_trace(go.Scatter(x=fpr, y=tpr, mode='lines', name=f'{name} ROC Curve'))
+            fig.add_shape(type='line', x0=0, y0=0, x1=1, y1=1, line=dict(dash='dash', color='yellow'))
+            fig.update_layout(xaxis_title='False Positive Rate', yaxis_title='True Positive Rate', title='ROC Curves Comparison')
+            st.plotly_chart(fig)
