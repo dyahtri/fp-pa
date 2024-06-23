@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.tree import plot_tree
+from sklearn.tree import DecisionTreeClassifier, plot_tree
 from sklearn.metrics import confusion_matrix, roc_curve, auc
 import plotly.graph_objects as go
 import matplotlib.pyplot as plt
@@ -13,9 +13,11 @@ def load_data(file_path):
 @st.cache_resource
 def get_model(model_name):
     if model_name == "Random Forest":
-        return RandomForestClassifier(n_estimators=10, max_depth=5, n_jobs=-1)  # Reduced number of estimators and depth
+        return RandomForestClassifier(n_estimators=10, max_depth=5, n_jobs=-1)  # Optimized for lightweight
+    elif model_name == "CART":
+        return DecisionTreeClassifier(max_depth=5)  # Optimized for lightweight
     else:
-        return DecisionTreeClassifier(max_depth=5)  # Reduced depth
+        raise ValueError("Unknown model name: {}".format(model_name))
 
 def train_model(model, X_train, y_train):
     model.fit(X_train, y_train)
