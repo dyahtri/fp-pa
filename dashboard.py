@@ -16,7 +16,7 @@ def get_model(model_name):
     if model_name == "Random Forest":
         return RandomForestClassifier(n_estimators=10, max_depth=5, n_jobs=-1)  # Optimized for lightweight
     elif model_name == "CART":
-        return DecisionTreeClassifier()  # Optimized for lightweight
+        return DecisionTreeClassifier(max_depth=5)  # Optimized for lightweight
     else:
         raise ValueError("Unknown model name: {}".format(model_name))
 
@@ -108,10 +108,6 @@ elif page == "Classification and Comparison":
                 model = train_model(model, X_train, y_train)
                 y_pred = model.predict(X_test)
 
-                accuracy = model.score(X_test, y_test)
-                specificity = specificity_score(y_test, y_pred)
-                sensitivity = sensitivity_score(y_test, y_pred)
-
                 st.subheader("Confusion Matrix")
                 cm = confusion_matrix(y_test, y_pred)
                 fig, ax = plt.subplots()
@@ -132,9 +128,9 @@ elif page == "Classification and Comparison":
                     _ = plot_tree(model, filled=True, ax=ax)
                     st.pyplot(fig)
 
-         elif tab == "Comparison":
+        elif tab == "Comparison":
             feature_columns = st.multiselect("Select Feature Columns (X)", st.session_state.train_data.columns, key='comparison_features')
-            label_column = st.selectbox("Select Label Column (Y)", st.session_state.train_data.columns, key='comparison_label')
+            label_column = st.selectbox("Select Label Column (Y)", st.session_state.train_data.columns[::-1], key='comparison_label')
 
             if feature_columns and label_column:
                 X_train = st.session_state.train_data[feature_columns]
@@ -180,7 +176,7 @@ elif page == "Classification and Comparison":
                 fig.add_shape(type='line', x0=0, y0=0, x1=1, y1=1, line=dict(dash='dash', color='yellow'))
                 fig.update_layout(xaxis_title='False Positive Rate', yaxis_title='True Positive Rate', title='ROC Curves Comparison')
                 st.plotly_chart(fig)
-                
+
 elif page == "Prediction":
     st.header("Prediction")
 
