@@ -112,10 +112,6 @@ elif page == "Classification and Comparison":
                 specificity = specificity_score(y_test, y_pred)
                 sensitivity = sensitivity_score(y_test, y_pred)
 
-                st.write("Accuracy: {:.3f}".format(accuracy))
-                st.write("Sensitivity: {:.3f}".format(sensitivity))
-                st.write("Specificity: {:.3f}".format(specificity))
-
                 st.subheader("Confusion Matrix")
                 cm = confusion_matrix(y_test, y_pred)
                 fig, ax = plt.subplots()
