@@ -182,7 +182,7 @@ elif page == "Prediction":
 
     if not st.session_state.train_data.empty and not st.session_state.test_data.empty:
         feature_columns = st.multiselect("Select Feature Columns (X)", st.session_state.train_data.columns, key='prediction_features')
-        label_column = st.selectbox("Select Label Column (Y)", st.session_state.train_data.columns[::-1], key='prediction_label')
+        label_column = st.selectbox("Select Label Column (Y)", st.session_state.train_data.columns, key='prediction_label')
         classifier_name = st.selectbox("Select Classifier", ["Random Forest", "CART"], index=0, key='prediction_classifier')
 
         if feature_columns and label_column:
