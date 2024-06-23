@@ -16,7 +16,7 @@ def get_model(model_name):
     if model_name == "Random Forest":
         return RandomForestClassifier(n_estimators=10, max_depth=5, n_jobs=-1)  # Optimized for lightweight
     elif model_name == "CART":
-        return DecisionTreeClassifier(max_depth=5)  # Optimized for lightweight
+        return DecisionTreeClassifier()  # Optimized for lightweight
     else:
         raise ValueError("Unknown model name: {}".format(model_name))
 
