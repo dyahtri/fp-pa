@@ -5,7 +5,6 @@ from sklearn.tree import DecisionTreeClassifier, plot_tree
 from sklearn.metrics import confusion_matrix, roc_curve, auc
 import plotly.graph_objects as go
 import matplotlib.pyplot as plt
-import random
 
 @st.cache_data
 def load_data(file_path):
@@ -14,9 +13,9 @@ def load_data(file_path):
 @st.cache_resource
 def get_model(model_name):
     if model_name == "Random Forest":
-        return RandomForestClassifier(n_estimators=10, max_depth=5, n_jobs=-1)  # Reduced number of estimators and depth
+        return RandomForestClassifier(n_estimators=10, max_depth=5, n_jobs=-1)  # Optimized parameters
     else:
-        return DecisionTreeClassifier(max_depth=5)  # Reduced depth
+        return DecisionTreeClassifier(max_depth=5)  # Optimized parameters
 
 def train_model(model, X_train, y_train):
     model.fit(X_train, y_train)
@@ -97,10 +96,8 @@ elif page == "Classification Models":
         classifier_name = st.selectbox("Select Classifier", ["Random Forest", "CART"], index=0)
 
         if feature_columns and label_column:
-            # Sampling data for training to keep memory usage low
-            train_data_sampled = sample_data(st.session_state.train_data, n_samples=10000)
-            X_train = train_data_sampled[feature_columns]
-            y_train = train_data_sampled[label_column]
+            X_train = st.session_state.train_data[feature_columns]
+            y_train = st.session_state.train_data[label_column]
             X_test = st.session_state.test_data[feature_columns]
             y_test = st.session_state.test_data[label_column]
 
@@ -134,12 +131,6 @@ elif page == "Classification Models":
                 fig, ax = plt.subplots(figsize=(12, 8))
                 _ = plot_tree(model, filled=True, ax=ax)
                 st.pyplot(fig)
-                
-            elif classifier_name == "Random Forest":
-                st.subheader("Random Forest Tree Visualization")
-                fig, ax = plt.subplots(figsize=(12, 8))
-                plot_tree(model.estimators_[0], filled=True, ax=ax)  # Show only one tree from Random Forest
-                st.pyplot(fig)
 
 elif page == "Prediction":
     st.header("Prediction")
@@ -150,10 +141,8 @@ elif page == "Prediction":
         classifier_name = st.selectbox("Select Classifier", ["Random Forest", "CART"], index=0, key='prediction_classifier')
 
         if feature_columns and label_column:
-            # Sampling data for training to keep memory usage low
-            train_data_sampled = sample_data(st.session_state.train_data, n_samples=10000)
-            X_train = train_data_sampled[feature_columns]
-            y_train = train_data_sampled[label_column]
+            X_train = st.session_state.train_data[feature_columns]
+            y_train = st.session_state.train_data[label_column]
 
             model = get_model(classifier_name)
             model = train_model(model, X_train, y_train)
@@ -181,10 +170,8 @@ elif page == "Comparison":
         label_column = st.selectbox("Select Label Column (Y)", st.session_state.train_data.columns, key='comparison_label')
 
         if feature_columns and label_column:
-            # Sampling data for training to keep memory usage low
-            train_data_sampled = sample_data(st.session_state.train_data, n_samples=10000)
-            X_train = train_data_sampled[feature_columns]
-            y_train = train_data_sampled[label_column]
+            X_train = st.session_state.train_data[feature_columns]
+            y_train = st.session_state.train_data[label_column]
             X_test = st.session_state.test_data[feature_columns]
             y_test = st.session_state.test_data[label_column]
 
@@ -221,8 +208,4 @@ elif page == "Comparison":
 
             st.subheader("ROC Curves Comparison")
             fig = go.Figure()
-            for name, (fpr, tpr) in roc_curves.items():
-                fig.add_trace(go.Scatter(x=fpr, y=tpr, mode='lines', name=f'{name} ROC Curve'))
-            fig.add_shape(type='line', x0=0, y0=0, x1=1, y1=1, line=dict(dash='dash', color='yellow'))
-            fig.update_layout(xaxis_title='False Positive Rate', yaxis_title='True Positive Rate', title='ROC Curves Comparison')
-            st.plotly_chart(fig)
+            for name, (fpr, tpr) in roc_curves
