@@ -15,7 +15,7 @@ def load_data(file_path):
 @st.cache_resource
 def get_model(model_name):
     if model_name == "Random Forest":
-        return RandomForestClassifier(n_estimators=10, max_depth=5, n_jobs=-1)  # Optimized for lightweight
+        return RandomForestClassifier(n_estimators=100, max_depth=5, n_jobs=-1)  # Optimized for lightweight
     elif model_name == "CART":
         return DecisionTreeClassifier(max_depth=5)  # Optimized for lightweight
     else:
