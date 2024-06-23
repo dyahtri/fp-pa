@@ -92,7 +92,7 @@ elif page == "Classification and Comparison":
     st.header("Classification and Comparison")
 
     if not st.session_state.train_data.empty and not st.session_state.test_data.empty:
-        tab = st.radio("Select Option", ["Classification Models", "Comparison"], horizontal=True)
+        tab = st.radio("Select Option", ["Classification Models", "Comparison"], index=0, key='radio')
 
         if tab == "Classification Models":
             feature_columns = st.multiselect("Select Feature Columns (X)", st.session_state.train_data.columns)
