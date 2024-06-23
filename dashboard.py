@@ -17,7 +17,7 @@ def get_model(model_name):
     if model_name == "Random Forest":
         return RandomForestClassifier(n_estimators=100, max_depth=5, n_jobs=-1)
     else:
-        return DecisionTreeClassifier(n_jobs=-1) 
+        return DecisionTreeClassifier(max_depth=10) 
 
 def train_model(model, X_train, y_train):
     model.fit(X_train, y_train)
