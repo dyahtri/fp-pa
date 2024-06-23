@@ -2,9 +2,9 @@ import streamlit as st
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier, plot_tree
-from sklearn.metrics import confusion_matrix, roc_curve, auc
-import plotly.graph_objects as go
+from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 @st.cache_data
 def load_data(file_path):
@@ -94,8 +94,7 @@ elif page == "Classification and Comparison":
 
         if tab == "Classification Models":
             feature_columns = st.multiselect("Select Feature Columns (X)", st.session_state.train_data.columns)
-            label_column = st.selectbox("Select Label Column (Y)", st.session_state.train_data.columns)
-            classifier_name = st.selectbox("Select Classifier", ["Random Forest", "CART"], index=0)
+            label_column = st.selectbox("Select Label Column (Y)", st.session_state.train_data.columns[::-1])  # Default to the last column
 
             if feature_columns and label_column:
                 X_train = st.session_state.train_data[feature_columns]
@@ -103,6 +102,7 @@ elif page == "Classification and Comparison":
                 X_test = st.session_state.test_data[feature_columns]
                 y_test = st.session_state.test_data[label_column]
 
+                classifier_name = st.selectbox("Select Classifier", ["Random Forest", "CART"], index=0)
                 model = get_model(classifier_name)
                 model = train_model(model, X_train, y_train)
                 y_pred = model.predict(X_test)
@@ -110,23 +110,18 @@ elif page == "Classification and Comparison":
                 accuracy = model.score(X_test, y_test)
                 specificity = specificity_score(y_test, y_pred)
                 sensitivity = sensitivity_score(y_test, y_pred)
-                fpr, tpr, _ = roc_curve(y_test, model.predict_proba(X_test)[:, 1])
-                roc_auc = auc(fpr, tpr)
 
                 st.write("Accuracy: {:.3f}".format(accuracy))
                 st.write("Sensitivity: {:.3f}".format(sensitivity))
                 st.write("Specificity: {:.3f}".format(specificity))
-                st.write("AUC: {:.3f}".format(roc_auc))
 
                 st.subheader("Confusion Matrix")
                 cm = confusion_matrix(y_test, y_pred)
-                st.write(cm)
-
-                st.subheader("ROC Curve")
-                fig = go.Figure(data=go.Scatter(x=fpr, y=tpr, mode='lines', name='ROC Curve'))
-                fig.add_shape(type='line', x0=0, y0=0, x1=1, y1=1, line=dict(dash='dash', color='yellow'))
-                fig.update_layout(xaxis_title='False Positive Rate', yaxis_title='True Positive Rate', title='ROC Curve')
-                st.plotly_chart(fig)
+                fig, ax = plt.subplots()
+                sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax)
+                plt.xlabel('Predicted')
+                plt.ylabel('Actual')
+                st.pyplot(fig)
 
                 if classifier_name == "Random Forest":
                     st.subheader("Random Forest Tree Visualization")
@@ -142,7 +137,7 @@ elif page == "Classification and Comparison":
 
         elif tab == "Comparison":
             feature_columns = st.multiselect("Select Feature Columns (X)", st.session_state.train_data.columns, key='comparison_features')
-            label_column = st.selectbox("Select Label Column (Y)", st.session_state.train_data.columns, key='comparison_label')
+            label_column = st.selectbox("Select Label Column (Y)", st.session_state.train_data.columns[::-1], key='comparison_label')
 
             if feature_columns and label_column:
                 X_train = st.session_state.train_data[feature_columns]
@@ -156,7 +151,6 @@ elif page == "Classification and Comparison":
                 }
 
                 metrics = []
-                roc_curves = {}
 
                 for name, model in classifiers.items():
                     model = train_model(model, X_train, y_train)
@@ -165,36 +159,23 @@ elif page == "Classification and Comparison":
                     accuracy = model.score(X_test, y_test)
                     specificity = specificity_score(y_test, y_pred)
                     sensitivity = sensitivity_score(y_test, y_pred)
-                    fpr, tpr, _ = roc_curve(y_test, model.predict_proba(X_test)[:, 1])
-                    roc_auc = auc(fpr, tpr)
 
                     metrics.append({
                         "Model": name,
                         "Accuracy": accuracy,
                         "Sensitivity": sensitivity,
-                        "Specificity": specificity,
-                        "AUC": roc_auc
+                        "Specificity": specificity
                     })
-
-                    roc_curves[name] = (fpr, tpr)
 
                 metrics_df = pd.DataFrame(metrics)
                 st.write(metrics_df)
-
-                st.subheader("ROC Curves Comparison")
-                fig = go.Figure()
-                for name, (fpr, tpr) in roc_curves.items():
-                    fig.add_trace(go.Scatter(x=fpr, y=tpr, mode='lines', name=f'{name} ROC Curve'))
-                fig.add_shape(type='line', x0=0, y0=0, x1=1, y1=1, line=dict(dash='dash', color='yellow'))
-                fig.update_layout(xaxis_title='False Positive Rate', yaxis_title='True Positive Rate', title='ROC Curves Comparison')
-                st.plotly_chart(fig)
 
 elif page == "Prediction":
     st.header("Prediction")
 
     if not st.session_state.train_data.empty and not st.session_state.test_data.empty:
         feature_columns = st.multiselect("Select Feature Columns (X)", st.session_state.train_data.columns, key='prediction_features')
-        label_column = st.selectbox("Select Label Column (Y)", st.session_state.train_data.columns, key='prediction_label')
+        label_column = st.selectbox("Select Label Column (Y)", st.session_state.train_data.columns[::-1], key='prediction_label')
         classifier_name = st.selectbox("Select Classifier", ["Random Forest", "CART"], index=0, key='prediction_classifier')
 
         if feature_columns and label_column:
