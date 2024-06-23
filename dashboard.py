@@ -15,7 +15,7 @@ def load_data(file_path):
 @st.cache_resource
 def get_model(model_name):
     if model_name == "Random Forest":
-        return RandomForestClassifier(n_estimators=100, max_depth=5, n_jobs=-1)  # Updated to 100 trees
+        return RandomForestClassifier(n_estimators=300, max_depth=5, n_jobs=-1)  # Updated to 100 trees
     elif model_name == "CART":
         return DecisionTreeClassifier(max_depth=5)  # Optimized for lightweight
     else:
@@ -96,7 +96,7 @@ elif page == "Classification and Comparison":
 
         if tab == "Classification Models":
             feature_columns = st.multiselect("Select Feature Columns (X)", st.session_state.train_data.columns)
-            label_column = st.selectbox("Select Label Column (Y)", st.session_state.train_data.columns[::-1])  # Default to the last column
+            label_column = st.selectbox("Select Label Column (Y)", st.session_state.train_data.columns[1:])  # Default to the last column
 
             if feature_columns and label_column:
                 X_train = st.session_state.train_data[feature_columns]
@@ -131,7 +131,7 @@ elif page == "Classification and Comparison":
 
         elif tab == "Comparison":
             feature_columns = st.multiselect("Select Feature Columns (X)", st.session_state.train_data.columns, key='comparison_features')
-            label_column = st.selectbox("Select Label Column (Y)", st.session_state.train_data.columns[::-1], key='comparison_label')
+            label_column = st.selectbox("Select Label Column (Y)", st.session_state.train_data.columns[1:], key='comparison_label')
 
             if feature_columns and label_column:
                 X_train = st.session_state.train_data[feature_columns]
