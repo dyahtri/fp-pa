@@ -4,7 +4,6 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier, plot_tree
 from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
-import seaborn as sns
 
 @st.cache_data
 def load_data(file_path):
@@ -118,7 +117,10 @@ elif page == "Classification and Comparison":
                 st.subheader("Confusion Matrix")
                 cm = confusion_matrix(y_test, y_pred)
                 fig, ax = plt.subplots()
-                sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax)
+                cax = ax.matshow(cm, cmap='Blues')
+                plt.colorbar(cax)
+                for (i, j), val in np.ndenumerate(cm):
+                    ax.text(j, i, f'{val}', ha='center', va='center', color='red')
                 plt.xlabel('Predicted')
                 plt.ylabel('Actual')
                 st.pyplot(fig)
