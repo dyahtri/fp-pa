@@ -5,6 +5,7 @@ from sklearn.tree import DecisionTreeClassifier, plot_tree
 from sklearn.metrics import confusion_matrix, roc_curve, auc
 import plotly.graph_objects as go
 import matplotlib.pyplot as plt
+import random
 
 @st.cache_data
 def load_data(file_path):
@@ -13,9 +14,9 @@ def load_data(file_path):
 @st.cache_resource
 def get_model(model_name):
     if model_name == "Random Forest":
-        return RandomForestClassifier(n_estimators=100, max_depth=None, n_jobs=-1)  # Use all processors to reduce time
+        return RandomForestClassifier(n_estimators=10, max_depth=5, n_jobs=-1)  # Reduced number of estimators and depth
     else:
-        return DecisionTreeClassifier(max_depth=None)
+        return DecisionTreeClassifier(max_depth=5)  # Reduced depth
 
 def train_model(model, X_train, y_train):
     model.fit(X_train, y_train)
@@ -32,6 +33,9 @@ def sensitivity_score(y_true, y_pred):
     tn, fp, fn, tp = cm.ravel()
     sensitivity = tp / (tp + fn)
     return sensitivity
+
+def sample_data(data, n_samples=10000):
+    return data.sample(n=min(n_samples, len(data)), random_state=42)
 
 st.set_page_config(page_title="Random Forest and CART Classification Dashboard", layout="wide")
 st.title("Dashboard for Random Forest and CART Classification")
@@ -93,8 +97,10 @@ elif page == "Classification Models":
         classifier_name = st.selectbox("Select Classifier", ["Random Forest", "CART"], index=0)
 
         if feature_columns and label_column:
-            X_train = st.session_state.train_data[feature_columns]
-            y_train = st.session_state.train_data[label_column]
+            # Sampling data for training to keep memory usage low
+            train_data_sampled = sample_data(st.session_state.train_data, n_samples=10000)
+            X_train = train_data_sampled[feature_columns]
+            y_train = train_data_sampled[label_column]
             X_test = st.session_state.test_data[feature_columns]
             y_test = st.session_state.test_data[label_column]
 
@@ -144,8 +150,10 @@ elif page == "Prediction":
         classifier_name = st.selectbox("Select Classifier", ["Random Forest", "CART"], index=0, key='prediction_classifier')
 
         if feature_columns and label_column:
-            X_train = st.session_state.train_data[feature_columns]
-            y_train = st.session_state.train_data[label_column]
+            # Sampling data for training to keep memory usage low
+            train_data_sampled = sample_data(st.session_state.train_data, n_samples=10000)
+            X_train = train_data_sampled[feature_columns]
+            y_train = train_data_sampled[label_column]
 
             model = get_model(classifier_name)
             model = train_model(model, X_train, y_train)
@@ -173,8 +181,10 @@ elif page == "Comparison":
         label_column = st.selectbox("Select Label Column (Y)", st.session_state.train_data.columns, key='comparison_label')
 
         if feature_columns and label_column:
-            X_train = st.session_state.train_data[feature_columns]
-            y_train = st.session_state.train_data[label_column]
+            # Sampling data for training to keep memory usage low
+            train_data_sampled = sample_data(st.session_state.train_data, n_samples=10000)
+            X_train = train_data_sampled[feature_columns]
+            y_train = train_data_sampled[label_column]
             X_test = st.session_state.test_data[feature_columns]
             y_test = st.session_state.test_data[label_column]
 
