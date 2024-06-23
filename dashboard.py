@@ -131,6 +131,11 @@ elif page == "Classification Models":
                 fig, ax = plt.subplots(figsize=(12, 8))
                 _ = plot_tree(model, filled=True, ax=ax)
                 st.pyplot(fig)
+            elif classifier_name == "Random Forest":
+                st.subheader("Random Forest Tree Visualization")
+                fig, ax = plt.subplots(figsize=(12, 8))
+                plot_tree(model.estimators_[0], filled=True, ax=ax)  # Menampilkan hanya satu pohon dari Random Forest
+                st.pyplot(fig)
 
 elif page == "Prediction":
     st.header("Prediction")
