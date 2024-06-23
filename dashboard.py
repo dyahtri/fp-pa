@@ -15,10 +15,9 @@ def load_data(file_path):
 @st.cache_resource
 def get_model(model_name):
     if model_name == "Random Forest":
-        return RandomForestClassifier(n_estimators=300, max_depth=5, n_jobs=-1)  # Updated to 100 trees
+        return RandomForestClassifier(n_estimators=300, max_depth=5, n_jobs=-1)
     else:
-        return DecisionTreeClassifier()  # Optimized for lightweight
-
+        return DecisionTreeClassifier() 
 
 def train_model(model, X_train, y_train):
     model.fit(X_train, y_train)
@@ -39,24 +38,20 @@ def sensitivity_score(y_true, y_pred):
 st.set_page_config(page_title="Random Forest and CART Classification Dashboard", layout="wide")
 st.title("Dashboard for Random Forest and CART Classification")
 
-# Sidebar for navigation
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Go to", ["Preview Data", "Descriptive Statistics", "Classification and Comparison", "Prediction"])
 
-# Initialize session state for data storage
 if 'train_data' not in st.session_state:
     st.session_state.train_data = pd.DataFrame()
 if 'test_data' not in st.session_state:
     st.session_state.test_data = pd.DataFrame()
 
-# Paths to data files
 TRAIN_DATA_FILE = "Data train balance.csv"
 TEST_DATA_FILE = "Data test balance.csv"
 
 if page == "Preview Data":
     st.header("Preview Data")
 
-    # Load training data
     try:
         st.session_state.train_data = load_data(TRAIN_DATA_FILE)
         st.write("Training Data Preview")
@@ -64,7 +59,6 @@ if page == "Preview Data":
     except FileNotFoundError:
         st.write(f"Training data file {TRAIN_DATA_FILE} not found.")
 
-    # Load testing data
     try:
         st.session_state.test_data = load_data(TEST_DATA_FILE)
         st.write("Testing Data Preview")
@@ -95,13 +89,18 @@ elif page == "Classification and Comparison":
 
         if tab == "Classification Models":
             feature_columns = st.multiselect("Select Feature Columns (X)", st.session_state.train_data.columns)
-            label_column = st.selectbox("Select Label Column (Y)", st.session_state.train_data.columns)  # Default to the last column
+            label_column = st.selectbox("Select Label Column (Y)", st.session_state.train_data.columns)
 
             if feature_columns and label_column:
                 X_train = st.session_state.train_data[feature_columns]
                 y_train = st.session_state.train_data[label_column]
                 X_test = st.session_state.test_data[feature_columns]
                 y_test = st.session_state.test_data[label_column]
+
+                if y_train.dtype == 'O':
+                    y_train = y_train.astype('category').cat.codes
+                if y_test.dtype == 'O':
+                    y_test = y_test.astype('category').cat.codes
 
                 classifier_name = st.selectbox("Select Classifier", ["Random Forest", "CART"], index=0)
                 model = get_model(classifier_name)
@@ -119,7 +118,7 @@ elif page == "Classification and Comparison":
                 if classifier_name == "Random Forest":
                     st.subheader("Random Forest Tree Visualization")
                     fig, ax = plt.subplots(figsize=(12, 8))
-                    plot_tree(model.estimators_[0], filled=True, ax=ax)  # Visualizing the first tree only
+                    plot_tree(model.estimators_[0], filled=True, ax=ax)
                     st.pyplot(fig)
 
                 elif classifier_name == "CART":
@@ -137,6 +136,11 @@ elif page == "Classification and Comparison":
                 y_train = st.session_state.train_data[label_column]
                 X_test = st.session_state.test_data[feature_columns]
                 y_test = st.session_state.test_data[label_column]
+
+                if y_train.dtype == 'O':
+                    y_train = y_train.astype('category').cat.codes
+                if y_test.dtype == 'O':
+                    y_test = y_test.astype('category').cat.codes
 
                 classifiers = {
                     "Random Forest": get_model("Random Forest"),
@@ -188,6 +192,9 @@ elif page == "Prediction":
         if feature_columns and label_column:
             X_train = st.session_state.train_data[feature_columns]
             y_train = st.session_state.train_data[label_column]
+
+            if y_train.dtype == 'O':
+                y_train = y_train.astype('category').cat.codes
 
             model = get_model(classifier_name)
             model = train_model(model, X_train, y_train)
