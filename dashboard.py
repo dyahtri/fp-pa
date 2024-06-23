@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.tree import plot_tree
 from sklearn.metrics import confusion_matrix, roc_curve, auc
 import plotly.graph_objects as go
 import matplotlib.pyplot as plt
@@ -13,9 +13,9 @@ def load_data(file_path):
 @st.cache_resource
 def get_model(model_name):
     if model_name == "Random Forest":
-        return RandomForestClassifier(n_estimators=10, max_depth=5, n_jobs=-1)  # Optimized parameters
+        return RandomForestClassifier(n_estimators=10, max_depth=5, n_jobs=-1)  # Reduced number of estimators and depth
     else:
-        return DecisionTreeClassifier(max_depth=5)  # Optimized parameters
+        return DecisionTreeClassifier(max_depth=5)  # Reduced depth
 
 def train_model(model, X_train, y_train):
     model.fit(X_train, y_train)
@@ -33,15 +33,12 @@ def sensitivity_score(y_true, y_pred):
     sensitivity = tp / (tp + fn)
     return sensitivity
 
-def sample_data(data, n_samples=10000):
-    return data.sample(n=min(n_samples, len(data)), random_state=42)
-
 st.set_page_config(page_title="Random Forest and CART Classification Dashboard", layout="wide")
 st.title("Dashboard for Random Forest and CART Classification")
 
 # Sidebar for navigation
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Load Data", "Descriptive Statistics", "Classification Models", "Prediction", "Comparison"])
+page = st.sidebar.radio("Go to", ["Load Data", "Classification Models", "Prediction", "Comparison"])
 
 # Initialize session state for data storage
 if 'train_data' not in st.session_state:
@@ -71,21 +68,6 @@ if page == "Load Data":
         st.write(st.session_state.test_data.head())
     except FileNotFoundError:
         st.write(f"Testing data file {TEST_DATA_FILE} not found.")
-
-elif page == "Descriptive Statistics":
-    st.header("Descriptive Statistics")
-
-    if not st.session_state.train_data.empty:
-        selected_columns_train = st.multiselect("Select Columns for Training Data (Descriptive Statistics)", st.session_state.train_data.columns)
-        if selected_columns_train:
-            st.write("Descriptive Statistics of Training Data")
-            st.write(st.session_state.train_data[selected_columns_train].describe())
-
-    if not st.session_state.test_data.empty:
-        selected_columns_test = st.multiselect("Select Columns for Testing Data (Descriptive Statistics)", st.session_state.test_data.columns)
-        if selected_columns_test:
-            st.write("Descriptive Statistics of Testing Data")
-            st.write(st.session_state.test_data[selected_columns_test].describe())
 
 elif page == "Classification Models":
     st.header("Classification Models")
@@ -126,15 +108,18 @@ elif page == "Classification Models":
             fig.update_layout(xaxis_title='False Positive Rate', yaxis_title='True Positive Rate', title='ROC Curve')
             st.plotly_chart(fig)
 
-            if classifier_name == "CART":
+            if classifier_name == "Random Forest":
+                st.subheader("Random Forest Tree Visualization")
+                num_trees_to_plot = min(3, len(model.estimators_))
+                for i in range(num_trees_to_plot):
+                    fig, ax = plt.subplots(figsize=(12, 8))
+                    plot_tree(model.estimators_[i], filled=True, ax=ax)
+                    st.pyplot(fig)
+                
+            elif classifier_name == "CART":
                 st.subheader("Decision Tree Visualization")
                 fig, ax = plt.subplots(figsize=(12, 8))
                 _ = plot_tree(model, filled=True, ax=ax)
-                st.pyplot(fig)
-            elif classifier_name == "Random Forest":
-                st.subheader("Random Forest Tree Visualization")
-                fig, ax = plt.subplots(figsize=(12, 8))
-                plot_tree(model.estimators_[0], filled=True, ax=ax)  # Menampilkan hanya satu pohon dari Random Forest
                 st.pyplot(fig)
 
 elif page == "Prediction":
@@ -206,15 +191,17 @@ elif page == "Comparison":
                     "AUC": roc_auc
                 })
 
-                roc_curves[name] = (fpr, tpr)
+                if name == "Random Forest":
+                    roc_curves[name] = (fpr, tpr)
 
             metrics_df = pd.DataFrame(metrics)
             st.write(metrics_df)
 
-            st.subheader("ROC Curves Comparison")
-            fig = go.Figure()
-            for name, (fpr, tpr) in roc_curves.items():
-                fig.add_trace(go.Scatter(x=fpr, y=tpr, mode='lines', name=f'{name} ROC Curve'))
-            fig.add_shape(type='line', x0=0, y0=0, x1=1, y1=1, line=dict(dash='dash', color='yellow'))
-            fig.update_layout(xaxis_title='False Positive Rate', yaxis_title='True Positive Rate', title='ROC Curves Comparison')
-            st.plotly_chart(fig)
+            if "Random Forest" in roc_curves:
+                st.subheader("ROC Curves Comparison")
+                fig = go.Figure()
+                for name, (fpr, tpr) in roc_curves.items():
+                    fig.add_trace(go.Scatter(x=fpr, y=tpr, mode='lines', name=f'{name} ROC Curve'))
+                fig.add_shape(type='line', x0=0, y0=0, x1=1, y1=1, line=dict(dash='dash', color='yellow'))
+                fig.update_layout(xaxis_title='False Positive Rate', yaxis_title='True Positive Rate', title='ROC Curves Comparison')
+                st.plotly_chart(fig)
