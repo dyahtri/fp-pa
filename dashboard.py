@@ -10,8 +10,13 @@ import matplotlib.pyplot as plt
 
 @st.cache_data
 def load_data(file_path):
-    # Read data with only necessary columns and appropriate data types
-    return pd.read_csv(file_path, dtype={'column1': 'float32', 'column2': 'int32', 'column3': 'category'})  # Example columns
+    # Read a subset of the data with more efficient data types
+    data = pd.read_csv(file_path)
+    for col in data.select_dtypes(include=['float64']).columns:
+        data[col] = pd.to_numeric(data[col], downcast='float')
+    for col in data.select_dtypes(include=['int64']).columns:
+        data[col] = pd.to_numeric(data[col], downcast='integer')
+    return data
 
 @st.cache_resource
 def get_model(model_name):
@@ -177,7 +182,8 @@ elif page == "Classification and Comparison":
                 st.subheader("ROC Curves Comparison")
                 fig = go.Figure()
                 for name, (fpr, tpr) in roc_curves.items():
-                    fig.add_trace(go.Scatter(x=fpr, y=tpr, mode='lines', name=f'{name} ROC Curve'))
+                    color = 'red' if name == 'CART' else None
+                    fig.add_trace(go.Scatter(x=fpr, y=tpr, mode='lines', name=f'{name} ROC Curve', line=dict(color=color)))
                 fig.add_shape(type='line', x0=0, y0=0, x1=1, y1=1, line=dict(dash='dash', color='yellow'))
                 fig.update_layout(xaxis_title='False Positive Rate', yaxis_title='True Positive Rate', title='ROC Curves Comparison')
                 st.plotly_chart(fig)
