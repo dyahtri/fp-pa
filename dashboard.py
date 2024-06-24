@@ -163,7 +163,11 @@ elif page == "Classification and Comparison":
                     accuracy = model.score(X_test, y_test)
                     specificity = specificity_score(y_test, y_pred)
                     sensitivity = sensitivity_score(y_test, y_pred)
-                    fpr, tpr, _ = roc_curve(y_test, model.predict_proba(X_test)[:, 1])
+                    try:
+                        y_pred_proba = model.predict_proba(X_test)[:, 1]
+                    except AttributeError:  # if model does not support predict_proba
+                        y_pred_proba = [0] * len(y_test)
+                    fpr, tpr, _ = roc_curve(y_test, y_pred_proba)
                     roc_auc = auc(fpr, tpr)
 
                     metrics.append({
@@ -214,7 +218,10 @@ elif page == "Prediction":
 
             input_df = pd.DataFrame(input_data)
             prediction = model.predict(input_df)[0]
-            prediction_proba = model.predict_proba(input_df)[0]
+            try:
+                prediction_proba = model.predict_proba(input_df)[0]
+            except AttributeError:  # if model does not support predict_proba
+                prediction_proba = [0] * len(input_df.columns)
 
             result = "Sah" if prediction == 0 else "Penipuan"
 
