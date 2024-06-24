@@ -10,14 +10,15 @@ import matplotlib.pyplot as plt
 
 @st.cache_data
 def load_data(file_path):
-    return pd.read_csv(file_path)
+    # Read data with only necessary columns and appropriate data types
+    return pd.read_csv(file_path, dtype={'column1': 'float32', 'column2': 'int32', 'column3': 'category'})  # Example columns
 
 @st.cache_resource
 def get_model(model_name):
     if model_name == "Random Forest":
-        return RandomForestClassifier(n_estimators=100, max_depth=5, n_jobs=-1)
+        return RandomForestClassifier(n_estimators=50, max_depth=3, n_jobs=-1)  # Reduced estimators and depth
     else:
-        return DecisionTreeClassifier(max_depth=5) 
+        return DecisionTreeClassifier(max_depth=3)  # Reduced depth
 
 def train_model(model, X_train, y_train):
     model.fit(X_train, y_train)
