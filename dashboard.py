@@ -5,7 +5,6 @@ import joblib
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier, plot_tree
 from sklearn.metrics import confusion_matrix, roc_curve, auc
-import plotly.graph_objects as go
 import seaborn as sns
 import matplotlib.pyplot as plt
 
@@ -22,9 +21,9 @@ def load_data(file_path):
 @st.cache_resource
 def get_model(model_name):
     if model_name == "Random Forest":
-        return RandomForestClassifier(n_estimators=100)  
+        return RandomForestClassifier(n_estimators=100)
     else:
-        return DecisionTreeClassifier()  
+        return DecisionTreeClassifier()
 
 def train_model(model, X_train, y_train, model_path):
     model.fit(X_train, y_train)
@@ -115,11 +114,11 @@ elif page == "Classification and Comparison":
 
                 classifier_name = st.selectbox("Select Classifier", ["Random Forest", "CART"], index=0)
                 model_path = f"{classifier_name.lower().replace(' ', '_')}_model.joblib"
-                
+
                 model = get_model(classifier_name)
                 model = train_model(model, X_train, y_train, model_path)
                 y_pred = model.predict(X_test)
-                
+
                 st.subheader("Confusion Matrix")
                 cm = confusion_matrix(y_test, y_pred)
                 fig, ax = plt.subplots()
