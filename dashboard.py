@@ -217,3 +217,4 @@ elif page == "Prediction":
             result = "Sah" if prediction == 0 else "Penipuan"
 
             st.write(f"Prediction: {result} (0: Sah, 1: Penipuan)")
+
