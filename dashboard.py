@@ -17,7 +17,7 @@ def load_data(file_path):
 @st.cache(allow_output_mutation=True)
 def get_model(model_name):
     if model_name == "Random Forest":
-        return RandomForestClassifier(n_estimators=40, max_depth=3, n_jobs=-1)
+        return RandomForestClassifier(n_estimators=30, max_depth=3, n_jobs=-1)
     else:
         return DecisionTreeClassifier(max_depth=3)
 
