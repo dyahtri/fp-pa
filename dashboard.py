@@ -5,7 +5,6 @@ import joblib
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier, plot_tree
 from sklearn.metrics import confusion_matrix, roc_curve, auc
-import seaborn as sns
 import matplotlib.pyplot as plt
 
 @st.cache_data
@@ -21,9 +20,9 @@ def load_data(file_path):
 @st.cache_resource
 def get_model(model_name):
     if model_name == "Random Forest":
-        return RandomForestClassifier(n_estimators=100)
+        return RandomForestClassifier(n_estimators=10)  # Reduce the number of estimators to make the model smaller
     else:
-        return DecisionTreeClassifier()
+        return DecisionTreeClassifier()  
 
 def train_model(model, X_train, y_train, model_path):
     model.fit(X_train, y_train)
@@ -114,11 +113,11 @@ elif page == "Classification and Comparison":
 
                 classifier_name = st.selectbox("Select Classifier", ["Random Forest", "CART"], index=0)
                 model_path = f"{classifier_name.lower().replace(' ', '_')}_model.joblib"
-
+                
                 model = get_model(classifier_name)
                 model = train_model(model, X_train, y_train, model_path)
                 y_pred = model.predict(X_test)
-
+                
                 st.subheader("Confusion Matrix")
                 cm = confusion_matrix(y_test, y_pred)
                 fig, ax = plt.subplots()
@@ -160,7 +159,6 @@ elif page == "Classification and Comparison":
                 }
 
                 metrics = []
-                roc_curves = {}
 
                 for name, model in classifiers.items():
                     model = train_model(model, X_train, y_train, f"{name.lower().replace(' ', '_')}_model.joblib")
@@ -173,30 +171,16 @@ elif page == "Classification and Comparison":
                         y_pred_proba = model.predict_proba(X_test)[:, 1]
                     except AttributeError:  # if model does not support predict_proba
                         y_pred_proba = [0] * len(y_test)
-                    fpr, tpr, _ = roc_curve(y_test, y_pred_proba)
-                    roc_auc = auc(fpr, tpr)
 
                     metrics.append({
                         "Model": name,
                         "Accuracy": accuracy,
                         "Sensitivity": sensitivity,
                         "Specificity": specificity,
-                        "AUC": roc_auc
                     })
-
-                    roc_curves[name] = (fpr, tpr)
 
                 metrics_df = pd.DataFrame(metrics)
                 st.write(metrics_df)
-
-                st.subheader("ROC Curves Comparison")
-                fig = go.Figure()
-                for name, (fpr, tpr) in roc_curves.items():
-                    color = 'red' if name == 'CART' else None
-                    fig.add_trace(go.Scatter(x=fpr, y=tpr, mode='lines', name=f'{name} ROC Curve', line=dict(color=color)))
-                fig.add_shape(type='line', x0=0, y0=0, x1=1, y1=1, line=dict(dash='dash', color='yellow'))
-                fig.update_layout(xaxis_title='False Positive Rate', yaxis_title='True Positive Rate', title='ROC Curves Comparison')
-                st.plotly_chart(fig)
 
 elif page == "Prediction":
     st.header("Prediction")
