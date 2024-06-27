@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import joblib
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier, plot_tree
 from sklearn.metrics import confusion_matrix, roc_curve, auc
@@ -21,13 +22,17 @@ def load_data(file_path):
 @st.cache_resource
 def get_model(model_name):
     if model_name == "Random Forest":
-        return RandomForestClassifier(n_estimators=50, max_depth=3, n_jobs=-1)  # Reduced estimators and depth
+        return RandomForestClassifier(n_estimators=100)  
     else:
-        return DecisionTreeClassifier(max_depth=3)  # Reduced depth
+        return DecisionTreeClassifier()  
 
-def train_model(model, X_train, y_train):
+def train_model(model, X_train, y_train, model_path):
     model.fit(X_train, y_train)
+    joblib.dump(model, model_path)
     return model
+
+def load_model(model_path):
+    return joblib.load(model_path)
 
 def specificity_score(y_true, y_pred):
     cm = confusion_matrix(y_true, y_pred)
@@ -109,10 +114,12 @@ elif page == "Classification and Comparison":
                     y_test = y_test.astype('category').cat.codes
 
                 classifier_name = st.selectbox("Select Classifier", ["Random Forest", "CART"], index=0)
+                model_path = f"{classifier_name.lower().replace(' ', '_')}_model.joblib"
+                
                 model = get_model(classifier_name)
-                model = train_model(model, X_train, y_train)
+                model = train_model(model, X_train, y_train, model_path)
                 y_pred = model.predict(X_test)
-
+                
                 st.subheader("Confusion Matrix")
                 cm = confusion_matrix(y_test, y_pred)
                 fig, ax = plt.subplots()
@@ -157,7 +164,7 @@ elif page == "Classification and Comparison":
                 roc_curves = {}
 
                 for name, model in classifiers.items():
-                    model = train_model(model, X_train, y_train)
+                    model = train_model(model, X_train, y_train, f"{name.lower().replace(' ', '_')}_model.joblib")
                     y_pred = model.predict(X_test)
 
                     accuracy = model.score(X_test, y_test)
@@ -207,8 +214,8 @@ elif page == "Prediction":
             if y_train.dtype == 'O':
                 y_train = y_train.astype('category').cat.codes
 
-            model = get_model(classifier_name)
-            model = train_model(model, X_train, y_train)
+            model_path = f"{classifier_name.lower().replace(' ', '_')}_model.joblib"
+            model = load_model(model_path)
 
             st.subheader("Input Values for Prediction")
             input_data = {}
