@@ -1,28 +1,23 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import joblib
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier, plot_tree
-from sklearn.metrics import confusion_matrix, roc_curve, auc
+from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
+import seaborn as sns
 
-@st.cache_data
+@st.cache
 def load_data(file_path):
-    # Read a subset of the data with more efficient data types
-    data = pd.read_csv(file_path)
-    for col in data.select_dtypes(include=['float64']).columns:
-        data[col] = pd.to_numeric(data[col], downcast='float')
-    for col in data.select_dtypes(include=['int64']).columns:
-        data[col] = pd.to_numeric(data[col], downcast='integer')
+    data = pd.read_csv(file_path, low_memory=True)
     return data
 
-@st.cache_resource
+@st.cache
 def get_model(model_name):
     if model_name == "Random Forest":
-        return RandomForestClassifier(n_estimators=10)  # Reduce the number of estimators to make the model smaller
+        return RandomForestClassifier(n_estimators=10)
     else:
-        return DecisionTreeClassifier()  
+        return DecisionTreeClassifier()
 
 def train_model(model, X_train, y_train, model_path):
     model.fit(X_train, y_train)
@@ -94,7 +89,7 @@ elif page == "Classification and Comparison":
     st.header("Classification and Comparison")
 
     if not st.session_state.train_data.empty and not st.session_state.test_data.empty:
-        tab = st.radio("Select Option", ["Classification Models", "Comparison"], horizontal=True)
+        tab = st.radio("Select Option", ["Classification Models", "Comparison"], key='classification_comparison')
 
         if tab == "Classification Models":
             feature_columns = st.multiselect("Select Feature Columns (X)", st.session_state.train_data.columns)
@@ -167,10 +162,6 @@ elif page == "Classification and Comparison":
                     accuracy = model.score(X_test, y_test)
                     specificity = specificity_score(y_test, y_pred)
                     sensitivity = sensitivity_score(y_test, y_pred)
-                    try:
-                        y_pred_proba = model.predict_proba(X_test)[:, 1]
-                    except AttributeError:  # if model does not support predict_proba
-                        y_pred_proba = [0] * len(y_test)
 
                     metrics.append({
                         "Model": name,
@@ -208,12 +199,8 @@ elif page == "Prediction":
 
             input_df = pd.DataFrame(input_data)
             prediction = model.predict(input_df)[0]
-            try:
-                prediction_proba = model.predict_proba(input_df)[0]
-            except AttributeError:  # if model does not support predict_proba
-                prediction_proba = [0] * len(input_df.columns)
 
             result = "Sah" if prediction == 0 else "Penipuan"
 
             st.write(f"Prediction: {result} (0: Sah, 1: Penipuan)")
-            st.write(f"Prediction Probability: {prediction_proba}")
+
