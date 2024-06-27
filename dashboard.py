@@ -1,17 +1,19 @@
 import streamlit as st
 import pandas as pd
-import joblib
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier, plot_tree
 from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 import seaborn as sns
+import joblib
 
+# Fungsi untuk memuat data dengan pengaturan yang lebih efisien
 @st.cache
 def load_data(file_path):
     data = pd.read_csv(file_path, low_memory=True)
     return data
 
+# Fungsi untuk memuat model
 @st.cache
 def get_model(model_name):
     if model_name == "Random Forest":
@@ -19,57 +21,67 @@ def get_model(model_name):
     else:
         return DecisionTreeClassifier()
 
+# Fungsi untuk melatih model
 def train_model(model, X_train, y_train, model_path):
     model.fit(X_train, y_train)
     joblib.dump(model, model_path)
     return model
 
+# Fungsi untuk memuat model yang sudah dilatih
 def load_model(model_path):
     return joblib.load(model_path)
 
+# Fungsi untuk menghitung skor khususitas (specificity) dari confusion matrix
 def specificity_score(y_true, y_pred):
     cm = confusion_matrix(y_true, y_pred)
     tn, fp, fn, tp = cm.ravel()
     specificity = tn / (tn + fp)
     return specificity
 
+# Fungsi untuk menghitung skor sensitivitas (sensitivity) dari confusion matrix
 def sensitivity_score(y_true, y_pred):
     cm = confusion_matrix(y_true, y_pred)
     tn, fp, fn, tp = cm.ravel()
     sensitivity = tp / (tp + fn)
     return sensitivity
 
+# Konfigurasi halaman Streamlit
 st.set_page_config(page_title="Random Forest and CART Classification Dashboard", layout="wide")
 st.title("Dashboard for Random Forest and CART Classification")
 
+# Sidebar navigasi
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Go to", ["Preview Data", "Descriptive Statistics", "Classification and Comparison", "Prediction"])
 
+# Inisialisasi state session untuk data latih dan uji
 if 'train_data' not in st.session_state:
     st.session_state.train_data = pd.DataFrame()
 if 'test_data' not in st.session_state:
     st.session_state.test_data = pd.DataFrame()
 
+# File data latih dan uji
 TRAIN_DATA_FILE = "Data train balance.csv"
 TEST_DATA_FILE = "Data test balance.csv"
 
+# Halaman untuk memuat data latih dan uji
 if page == "Preview Data":
     st.header("Preview Data")
 
     try:
-        st.session_state.train_data = load_data(TRAIN_DATA_FILE)
+        st.session_state.train_data = load_data(TRAIN_DATA_FILE).sample(frac=0.1, random_state=1) # Memuat hanya sebagian data latih
         st.write("Training Data Preview")
         st.write(st.session_state.train_data.head())
     except FileNotFoundError:
         st.write(f"Training data file {TRAIN_DATA_FILE} not found.")
 
     try:
-        st.session_state.test_data = load_data(TEST_DATA_FILE)
+        st.session_state.test_data = load_data(TEST_DATA_FILE).sample(frac=0.1, random_state=1) # Memuat hanya sebagian data uji
         st.write("Testing Data Preview")
         st.write(st.session_state.test_data.head())
     except FileNotFoundError:
         st.write(f"Testing data file {TEST_DATA_FILE} not found.")
 
+# Halaman untuk statistik deskriptif
 elif page == "Descriptive Statistics":
     st.header("Descriptive Statistics")
 
@@ -85,6 +97,7 @@ elif page == "Descriptive Statistics":
             st.write("Descriptive Statistics of Testing Data")
             st.write(st.session_state.test_data[selected_columns_test].describe())
 
+# Halaman untuk klasifikasi dan perbandingan model
 elif page == "Classification and Comparison":
     st.header("Classification and Comparison")
 
@@ -173,6 +186,7 @@ elif page == "Classification and Comparison":
                 metrics_df = pd.DataFrame(metrics)
                 st.write(metrics_df)
 
+# Halaman untuk prediksi
 elif page == "Prediction":
     st.header("Prediction")
 
@@ -203,4 +217,3 @@ elif page == "Prediction":
             result = "Sah" if prediction == 0 else "Penipuan"
 
             st.write(f"Prediction: {result} (0: Sah, 1: Penipuan)")
-
