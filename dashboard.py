@@ -19,7 +19,7 @@ def get_model(model_name):
     if model_name == "Random Forest":
         return RandomForestClassifier(n_estimators=20, max_depth=3, n_jobs=-1)
     else:
-        return DecisionTreeClassifier(max_depth=3)
+        return DecisionTreeClassifier(n_estimators=10, max_depth=3)
 
 # Function to train model
 def train_model(model, X_train, y_train):
